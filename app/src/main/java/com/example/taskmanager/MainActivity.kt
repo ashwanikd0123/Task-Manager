@@ -3,8 +3,6 @@ package com.example.taskmanager
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.taskmanager.databinding.ActivityMainBinding
@@ -18,7 +16,8 @@ class MainActivity : AppCompatActivity() {
 
         val taskModel = TaskModel(this)
         val viewModel = TaskViewModel(taskModel)
-        val adapter = TaskListAdapter(viewModel)
+        val adapter = TaskListAdapter()
+        adapter.setCallBack(viewModel)
 
         binding.recView.adapter = adapter
         binding.recView.layoutManager = LinearLayoutManager(this)
@@ -26,13 +25,23 @@ class MainActivity : AppCompatActivity() {
         binding.addTaskButton.setOnClickListener{
             val text = binding.taskTextEdittext.text.toString()
             if (text.isNotEmpty()) {
-                viewModel.addTask(text)
+                viewModel.addTask(text) {
+                    viewModel.getTaskList({
+                        runOnUiThread {
+                            adapter.setTaskList(viewModel.taskList.value!!)
+                            adapter.notifyItemInserted(adapter.itemCount - 1)
+                        }
+                    })
+                }
             }
             binding.taskTextEdittext.setText("")
         }
 
-        viewModel.taskList.observe(this) {
-            adapter.setTaskList(viewModel.getTaskList())
-        }
+        viewModel.getTaskList({
+            runOnUiThread {
+                adapter.setTaskList(viewModel.taskList.value!!)
+                adapter.notifyDataSetChanged()
+            }
+        })
     }
 }

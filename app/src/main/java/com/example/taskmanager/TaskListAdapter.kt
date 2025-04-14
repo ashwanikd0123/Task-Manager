@@ -2,14 +2,14 @@ package com.example.taskmanager
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.CompoundButton
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.example.taskmanager.databinding.TaskListItemLayoutBinding
 
-class TaskListAdapter(val model: TaskViewModel) : Adapter<TaskListAdapter.TaskViewHolder>() {
+class TaskListAdapter : Adapter<TaskListAdapter.TaskViewHolder>() {
 
-    var taskData: List<TaskData> = listOf()
+    var taskData: MutableList<TaskData> = mutableListOf()
+    var changeCallBack: ChangeCallBack? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
@@ -20,11 +20,18 @@ class TaskListAdapter(val model: TaskViewModel) : Adapter<TaskListAdapter.TaskVi
     override fun onBindViewHolder(holder: TaskViewHolder, position: Int) {
         holder.taskTextView.text = taskData[position].task
         holder.taskStatusSwitch.isChecked = taskData[position].status?:false
+
         holder.deleteButton.setOnClickListener{
-            model.deleteTask(taskData[position])
+            val layoutPos = holder.layoutPosition
+            val data = taskData.removeAt(layoutPos)
+            notifyItemRemoved(layoutPos)
+            changeCallBack?.taskDeleted(data)
         }
+
         holder.taskStatusSwitch.setOnCheckedChangeListener ({button, checked ->
-            model.setTaskStatus(taskData[position], checked)
+            val layoutPos = holder.layoutPosition
+            taskData[layoutPos].status = checked
+            changeCallBack?.taskStatesChanged(taskData[layoutPos])
         })
     }
 
@@ -33,13 +40,21 @@ class TaskListAdapter(val model: TaskViewModel) : Adapter<TaskListAdapter.TaskVi
     }
 
     fun setTaskList(data: List<TaskData>) {
-        taskData = data.toList()
-        notifyDataSetChanged()
+        taskData = data.toMutableList()
+    }
+
+    fun setCallBack(callBack: ChangeCallBack) {
+        this.changeCallBack = callBack
     }
 
     class TaskViewHolder(binding: TaskListItemLayoutBinding) : ViewHolder(binding.root) {
         val taskTextView = binding.taskTextview
         val taskStatusSwitch = binding.doneSwitch
         val deleteButton = binding.deleteButton
+    }
+
+    interface ChangeCallBack {
+        fun taskDeleted(data: TaskData)
+        fun taskStatesChanged(data: TaskData)
     }
 }

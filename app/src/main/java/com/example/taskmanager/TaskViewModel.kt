@@ -5,29 +5,19 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class TaskViewModel(val model: TaskModel) {
-    val taskList = MutableLiveData<List<TaskData>>()
+class TaskViewModel(val model: TaskModel) : TaskListAdapter.ChangeCallBack {
+    val taskList = MutableLiveData<List<TaskData>>(listOf())
 
-    init {
+    fun getTaskList(callBack: TaskAddCallBack){
         CoroutineScope(Dispatchers.Default).launch {
             taskList.postValue(model.getAllTasks())
+            callBack.notifyCallers()
         }
-    }
-
-    fun getTaskList() : List<TaskData> {
-        return taskList.value!!.toList()
     }
 
     fun deleteTask(data: TaskData) {
         CoroutineScope(Dispatchers.Default).launch {
             model.deleteTask(data.task!!)
-            taskList.postValue(model.getAllTasks())
-        }
-    }
-
-    fun setTaskStatus(task:String, status: Boolean) {
-        CoroutineScope(Dispatchers.Default).launch {
-            model.updateTaskStatus(task, status)
             taskList.postValue(model.getAllTasks())
         }
     }
@@ -39,14 +29,23 @@ class TaskViewModel(val model: TaskModel) {
         }
     }
 
-    fun addTask(task : String) {
+    fun addTask(task : String, callBack: TaskAddCallBack) {
         CoroutineScope(Dispatchers.Default).launch {
             model.addTask(task)
             taskList.postValue(model.getAllTasks())
+            callBack.notifyCallers()
         }
     }
 
-    fun getTaskAt(idx: Int) : TaskData {
-        return taskList.value!![idx]
+    override fun taskDeleted(data: TaskData) {
+        deleteTask(data)
+    }
+
+    override fun taskStatesChanged(data: TaskData) {
+        setTaskStatus(data, data.status!!)
+    }
+
+    fun interface TaskAddCallBack {
+        fun notifyCallers()
     }
 }
