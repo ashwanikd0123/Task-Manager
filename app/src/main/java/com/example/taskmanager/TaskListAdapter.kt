@@ -1,12 +1,14 @@
 package com.example.taskmanager
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.example.taskmanager.databinding.TaskListItemLayoutBinding
 
-class TaskListAdapter : Adapter<TaskListAdapter.TaskViewHolder>() {
+class TaskListAdapter(val context: Context) : Adapter<TaskListAdapter.TaskViewHolder>() {
 
     var taskData: MutableList<TaskData> = mutableListOf()
     var changeCallBack: ChangeCallBack? = null
@@ -28,15 +30,21 @@ class TaskListAdapter : Adapter<TaskListAdapter.TaskViewHolder>() {
 
         holder.taskStatusSwitch.setOnCheckedChangeListener ({button, checked ->
             val layoutPos = holder.layoutPosition
-            taskData[layoutPos].status = checked
-            changeCallBack?.taskStatesChanged(taskData[layoutPos])
+            markItemDone(layoutPos, checked)
         })
+    }
+
+    fun markItemDone(itemIdx : Int, checked: Boolean) {
+        taskData[itemIdx].status = checked
+        changeCallBack?.taskStatesChanged(taskData[itemIdx])
+        Toast.makeText(context, (if (checked) "Task Done: " else "Task Undone:") + taskData[itemIdx].task, Toast.LENGTH_SHORT).show()
     }
 
     fun removeItem(itemIdx : Int) {
         val data = taskData.removeAt(itemIdx)
         notifyItemRemoved(itemIdx)
         changeCallBack?.taskDeleted(data)
+        Toast.makeText(context, "Deleted Task: " + data.task, Toast.LENGTH_SHORT).show()
     }
 
     override fun getItemCount(): Int {

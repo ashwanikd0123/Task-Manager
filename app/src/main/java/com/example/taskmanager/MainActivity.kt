@@ -21,7 +21,7 @@ class MainActivity : AppCompatActivity() {
 
         val taskModel = TaskModel(this)
         viewModel.setTaskModel(taskModel)
-        val adapter = TaskListAdapter()
+        val adapter = TaskListAdapter(this)
         adapter.setCallBack(viewModel)
 
         binding.recView.adapter = adapter
@@ -42,12 +42,12 @@ class MainActivity : AppCompatActivity() {
             binding.taskTextEdittext.setText("")
         }
 
-        viewModel.getTaskList({
+        viewModel.getTaskList {
             runOnUiThread {
                 adapter.setTaskList(viewModel.taskList.value!!)
                 adapter.notifyDataSetChanged()
             }
-        })
+        }
 
         val itemTouchCallback = ItemTouchHelperCallBack(adapter)
         val itemTouchHelper = ItemTouchHelper(itemTouchCallback)
