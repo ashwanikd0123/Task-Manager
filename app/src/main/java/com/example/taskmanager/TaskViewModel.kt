@@ -1,36 +1,47 @@
 package com.example.taskmanager
 
 import androidx.lifecycle.MutableLiveData
-import kotlinx.coroutines.CoroutineScope
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class TaskViewModel(val model: TaskModel) : TaskListAdapter.ChangeCallBack {
+class TaskViewModel() : ViewModel(), TaskListAdapter.ChangeCallBack {
     val taskList = MutableLiveData<List<TaskData>>(listOf())
 
+    lateinit var model: TaskModel
+
+    fun setTaskModel(model: TaskModel) {
+        this.model = model
+    }
+
     fun getTaskList(callBack: TaskAddCallBack){
-        CoroutineScope(Dispatchers.Default).launch {
+        viewModelScope.launch(Dispatchers.Default) {
             taskList.postValue(model.getAllTasks())
             callBack.notifyCallers()
         }
     }
 
     fun deleteTask(data: TaskData) {
-        CoroutineScope(Dispatchers.Default).launch {
+        viewModelScope.launch(Dispatchers.Default) {
             model.deleteTask(data.task!!)
             taskList.postValue(model.getAllTasks())
         }
     }
 
     fun setTaskStatus(task:TaskData, status: Boolean) {
-        CoroutineScope(Dispatchers.Default).launch {
+        viewModelScope.launch(Dispatchers.Default) {
             model.updateTaskStatus(task, status)
             taskList.postValue(model.getAllTasks())
         }
     }
 
     fun addTask(task : String, callBack: TaskAddCallBack) {
-        CoroutineScope(Dispatchers.Default).launch {
+        viewModelScope.launch(Dispatchers.Default) {
             model.addTask(task)
             taskList.postValue(model.getAllTasks())
             callBack.notifyCallers()
@@ -47,5 +58,18 @@ class TaskViewModel(val model: TaskModel) : TaskListAdapter.ChangeCallBack {
 
     fun interface TaskAddCallBack {
         fun notifyCallers()
+    }
+
+    companion object {
+
+        val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(
+                modelClass: Class<T>,
+                extras: CreationExtras
+            ): T {
+                return TaskViewModel() as T
+            }
+        }
     }
 }

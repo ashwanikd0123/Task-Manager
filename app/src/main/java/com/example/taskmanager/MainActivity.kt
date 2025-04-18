@@ -1,13 +1,17 @@
 package com.example.taskmanager
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.taskmanager.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
+    val viewModel: TaskViewModel by viewModels { TaskViewModel.Factory }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -15,7 +19,7 @@ class MainActivity : AppCompatActivity() {
         val binding = DataBindingUtil.setContentView<ActivityMainBinding>(this, R.layout.activity_main)
 
         val taskModel = TaskModel(this)
-        val viewModel = TaskViewModel(taskModel)
+        viewModel.setTaskModel(taskModel)
         val adapter = TaskListAdapter()
         adapter.setCallBack(viewModel)
 
@@ -26,12 +30,12 @@ class MainActivity : AppCompatActivity() {
             val text = binding.taskTextEdittext.text.toString()
             if (text.isNotEmpty()) {
                 viewModel.addTask(text) {
-                    viewModel.getTaskList({
-                        runOnUiThread {
+                    viewModel.getTaskList {
+                        Handler(Looper.getMainLooper()).post {
                             adapter.setTaskList(viewModel.taskList.value!!)
                             adapter.notifyItemInserted(adapter.itemCount - 1)
                         }
-                    })
+                    }
                 }
             }
             binding.taskTextEdittext.setText("")
