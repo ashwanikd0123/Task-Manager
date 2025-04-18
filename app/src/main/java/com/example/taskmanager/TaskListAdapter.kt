@@ -23,9 +23,7 @@ class TaskListAdapter : Adapter<TaskListAdapter.TaskViewHolder>() {
 
         holder.deleteButton.setOnClickListener{
             val layoutPos = holder.layoutPosition
-            val data = taskData.removeAt(layoutPos)
-            notifyItemRemoved(layoutPos)
-            changeCallBack?.taskDeleted(data)
+            removeItem(layoutPos)
         }
 
         holder.taskStatusSwitch.setOnCheckedChangeListener ({button, checked ->
@@ -33,6 +31,12 @@ class TaskListAdapter : Adapter<TaskListAdapter.TaskViewHolder>() {
             taskData[layoutPos].status = checked
             changeCallBack?.taskStatesChanged(taskData[layoutPos])
         })
+    }
+
+    fun removeItem(itemIdx : Int) {
+        val data = taskData.removeAt(itemIdx)
+        notifyItemRemoved(itemIdx)
+        changeCallBack?.taskDeleted(data)
     }
 
     override fun getItemCount(): Int {

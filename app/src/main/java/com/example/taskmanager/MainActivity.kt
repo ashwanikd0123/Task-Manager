@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.taskmanager.databinding.ActivityMainBinding
 
@@ -47,5 +48,9 @@ class MainActivity : AppCompatActivity() {
                 adapter.notifyDataSetChanged()
             }
         })
+
+        val itemTouchCallback = ItemTouchHelperCallBack(adapter)
+        val itemTouchHelper = ItemTouchHelper(itemTouchCallback)
+        itemTouchHelper.attachToRecyclerView(binding.recView)
     }
 }
